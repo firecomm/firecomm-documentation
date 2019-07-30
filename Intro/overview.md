@@ -53,54 +53,53 @@ message Math {
 > rpc ClientToServer (stream File) returns (Confirmation) {};
 > ```
 
-#### 2. `build()` a `package`
+#### 2. Let's `build()` a `package`
 
-Next let's use our `.proto` file to build a package for our `Server` and client `Stub`s. We can create a `package.js` file which will `export` a `package` containing the transpiled `service`s, `rpc` methods.
+Now that we've defined our API in a ProtoBuf, let's pass an absolute path to our `.proto` file to build a `package`. We will create a `package.js` file which will live in our root folder and `export` a configured `package` containing the transpiled `service`s and `rpc` methods.
+
+We will also define our configuration for how our packaged methods will handle different data types.
 
 ```javascript
 // package.js
 const { build } = require( 'firecomm' );
 const path = require( 'path' );
-const PROTO_PATH = './'
+const PROTO_PATH = path.join( __dirname, './proto/exampleAPI.proto' );
+
+const CONFIG_OBJECT = {
+  keepCase: true, // keeps everything camelCased
+  longs: Number, // transpiles the enormous `double`s for our HeavyMath into a javascript Number rather than a String
+  bytes: String, // helps us manage the FileTransfer bytes as javascript `String`s rather than pure hexadecimal Buffers or uint8Arrays
+}
 const package = build( PROTO_PATH, CONFIG_OBJECT );
 module.exports = package;
 ```
-***returns** a gRPC package **object** with* `SERVICE_DEFINITION`*s as properties*
+
+> Advanced Note: whether you're building a firecomm/gRPC-Node `Server`, a firecomm/gRPC-Node client with `Stub`s, or a firecomm/gRPC-Node hybrid client/server, it is important to build a package with configurations that match the API for your distributed system. Every server and client should have the same `.proto` file regardless of language.
 
 #### 3. Create a server
+Next, we will create a `new Server()` inside a `server.js` file which will live in a `server` folder. 
+
 ```javascript
+// /server/server.js
 const { Server } = require( 'firecomm' );
 const server = new Server();
 ```
-***returns** a gRPC server instance **object***
-#### 4. Define your `HANDLER_FUNCTION` for each `RPC_METHOD` and/or `MIDDLEWARE_STACK` functions for each `RPC_METHOD`
-1. #### CALL *object* // call methods are specific to each `CALL_TYPE`. Possible `CALL_TYPE`s are `UNARY`, `CLIENT_STREAM`, `SERVER_STREAM`, and `DUPLEX`.
+#### 4. Define the server-side handlers for our `FileTransfer` service.
+
+Let's define handler functions for our two FileTransfer methods. Method handler functions will contain the server-side logic for our two services. Let's start by defining the handlers for our `FileTransfer` service in a `fileTransferHandlers.js` file which will live inside our `server` folder.
+
 ```javascript
-exampleUnaryHandler( CALL ) {
-  // single response
+// /server/fileTransferHandlers.js
+ClientToServerHandler( CALL ) {
   CALL.send({ response: value });
 };
-exampleClientStreamHandler( CALL ) {
-  // listeners for stream from client
+ServerToClientHandler( CALL ) {
   CALL.on('data', request => someFunctionality(request));
-  // single response
   CALL.send({ response: value });
-};
-exampleServerStreamHandler( CALL ) {
-  // some logic to warrant a streaming response
-  CALL.write({ responseChunk: value });
-};
-exampleDuplexHandler( CALL ) {
-  // listeners for stream from client
-  CALL.on('data', request => someFunctionality(request));
-  // some logic to warrant a streaming response
-  CALL.write({ responseChunk: value });
 };
 module.exports = { 
-	exampleUnary,
-	exampleClientStream,
-	exampleServerStream,
-	exampleDuplex,
+	ClientToServerHandler,
+	ServerToClientHandler,
 }
 ```
 *doesn't **return** anything*
