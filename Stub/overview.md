@@ -18,9 +18,9 @@ stub.sayHello( { greeting:"Hello world." } )
 ```
 
 The primary methods that are available on the stub.
-  1.  The constructor, which will allow you to instantiate an arbitrary number of channels and for that service.
+  1.  The constructor, which will allow you to instantiate a channel for that service.
   2.  The methods that are available on an ordinary gRPC client/channel.
-  3.  Your gRPC methods from the service you passed into that Stub, which have been extended by Firecomm with added functionality. For example:
-      1.  Unary calls support Promise-handling for asycnhroniticty if no callback is supplied.
+  3.  Your gRPC methods from the service you passed into that Stub, which have been extended by Firecomm with added functionality.
+      1.  Unary calls support Promise-handling for asycnhroniticity if no callback is supplied.
       2.  Metadata can now be passed in as a Javascript object directly.
       3.  Support for interceptors and interceptor providers on all four client methods.
