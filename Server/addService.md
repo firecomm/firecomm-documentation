@@ -15,10 +15,12 @@ server.addService(
 
 1. #### SERVICE_DEFINITION `object` // Service as it is named on your `.proto` file. Is a property on the built package.
 2. #### RPC_METHODS_OBJECT `object` // maps each `RPC_METHOD`	to its `HANDLER_FUNCTION` or `MIDDLEWARE_STACK`.
+    > **NOTE**: For RPC_METHOD, each handler name must match the name of the RPC method as defined in the `.proto` file, or it will throw an error.
    1. ##### RPC_METHOD `property` // must match each `rpc Method` named in the `.proto`
-      	1. ##### HANDLER_FUNCTION `value` // function to handle the `rpc Method`
-	        ##### *OR*
-      	2. ##### MIDDLEWARE_STACK `value` // array of `function`(s) to handle the `rpc Method`. The main `HANDER_FUNCTION` to be run must be last in the array.
+
+      1. ##### HANDLER_FUNCTION `function` // function to handle the `rpc Method`
+          ##### *OR*
+      2. ##### MIDDLEWARE_STACK `array` // array of `function`(s) to handle the `rpc Method`. The main `HANDER_FUNCTION` to be run must be last in the array.
 3. #### [ *optional* ] SERVICE_MIDDLEWARE `function` OR `array` // Either a middleware function or an array of middleware functions that will add to the front of the middleware stack for every method in the service.
 4. #### [ *optional* ] ERROR_HANDLER `function` // function that handles uncaught errors thrown in any of your service method handlers for this service, overwrites the `Server` level error handler if one has been specified
 
