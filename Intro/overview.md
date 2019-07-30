@@ -44,9 +44,9 @@ message Math {
 ```
 
 #### 2. build( )
-##### parameters:
-1. ###### PROTO_PATH *string* // absolute path to the .proto file to be transpiled into Node.js
-2. ###### *optional* CONFIG_OBJECT *object* // object with nine properties for transpiling data types. 
+#### parameters:
+1. #### PROTO_PATH *string* // absolute path to the .proto file to be transpiled into Node.js
+2. #### *optional* CONFIG_OBJECT *object* // object with nine properties for transpiling data types. 
 ```javascript 
 const { build } = require( 'firecomm' );
 const package = build( PROTO_PATH, CONFIG_OBJECT );
@@ -61,7 +61,7 @@ const server = new Server();
 ```
 ***returns** a gRPC server instance **object***
 #### 4. Define your `HANDLER_FUNCTION` for each `RPC_METHOD` and/or `MIDDLEWARE_STACK` functions for each `RPC_METHOD`
-1. ###### CALL *object* // call methods are specific to each `CALL_TYPE`. Possible `CALL_TYPE`s are `UNARY`, `CLIENT_STREAM`, `SERVER_STREAM`, and `DUPLEX`.
+1. #### CALL *object* // call methods are specific to each `CALL_TYPE`. Possible `CALL_TYPE`s are `UNARY`, `CLIENT_STREAM`, `SERVER_STREAM`, and `DUPLEX`.
 ```javascript
 exampleUnaryHandler( CALL ) {
   // single response
@@ -92,13 +92,13 @@ module.exports = {
 ```
 *doesn't **return** anything*
 #### 5. Add each `SERVICE_DEFINITION` for the server to handle
-##### parameters:
-1. ###### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
-2. ###### RPC_METHODS_OBJECT *object* // maps each `RPC_METHOD`	to it's `HANDLER_FUNCTION` or `MIDDLEWARE_STACK`.
-	###### RPC_METHOD *property* // must match each `rpc Method` named in the `.proto`
-	###### HANDLER_FUNCTION *value* // function to handle the `rpc Method`
-	###### *OR*
-	###### MIDDLEWARE_STACK *value* // array of *functions* to handle the `rpc Method`. The main `HANDER_FUNCTION` to be run must be last in the array.
+#### parameters:
+1. #### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
+2. #### RPC_METHODS_OBJECT *object* // maps each `RPC_METHOD`	to it's `HANDLER_FUNCTION` or `MIDDLEWARE_STACK`.
+	#### RPC_METHOD *property* // must match each `rpc Method` named in the `.proto`
+	#### HANDLER_FUNCTION *value* // function to handle the `rpc Method`
+	#### *OR*
+	#### MIDDLEWARE_STACK *value* // array of *functions* to handle the `rpc Method`. The main `HANDER_FUNCTION` to be run must be last in the array.
 ```javascript
 const { Server } = require( 'firecomm' );
 const server = new Server();
@@ -106,9 +106,9 @@ server.addService( SERVICE, RPC_METHODS_OBJECT );
 ```
 *doesn't **return** anything*
 #### 6. Bind the server `SOCKETS`
-##### parameters:
-1. ###### SOCKETS *string* or *array* // string composed of IP_ADDRESS: PORT or an array of strings to bind multiple sockets
-2. ###### *optional* SECURITY_CONFIG_OBJECT *object* // object defining the security of the connection. Default is insecure. 
+#### parameters:
+1. #### SOCKETS *string* or *array* // string composed of IP_ADDRESS: PORT or an array of strings to bind multiple sockets
+2. #### *optional* SECURITY_CONFIG_OBJECT *object* // object defining the security of the connection. Default is insecure. 
 ```javascript
 const { Server } = require( 'firecomm' );
 const server = new Server();
@@ -126,10 +126,10 @@ server.start();
 ```
 *doesn't **return** anything*
 #### 8.  Open a client Stub with a `SERVICE_DEFINITION` and `SOCKET`
-##### parameters:
-1. ###### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
-2. ###### SOCKET *string* // string composed of IP_ADDRESS: PORT
-3. ###### *optional* SECURITY_CONFIG_OBJECT *object* // object defining the security of the connection. Default is insecure. 
+#### parameters:
+1. #### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
+2. #### SOCKET *string* // string composed of IP_ADDRESS: PORT
+3. #### *optional* SECURITY_CONFIG_OBJECT *object* // object defining the security of the connection. Default is insecure. 
 ```javascript
 const { Stub } = require( 'firecomm' );
 const clientStub = new Stub( 
@@ -140,10 +140,10 @@ const clientStub = new Stub(
 ```
 ***returns** a gRPC stub instance **object***
 #### 9.  Make `RPC_METHOD` requests from the `STUB`
-##### parameters:
+#### parameters:
 
-1.  ###### MESSAGE _object_ // Must have the properties of the `message` defined to be sent as `REQUEST` in the `RPC_METHOD` as defined in this stub's `SERVICE`. The `RPC_METHOD` that exists on the `STUB` matches the name you gave for the `RPC_METHOD` in your built `.proto` file.
-2. ###### *only for* **`UNARY`** *and* **`CLIENT_STREAM`** CALLBACK *function* // function which runs on once `CLIENT` gets a `RESPONSE` from `SERVER`
+1.  #### MESSAGE _object_ // Must have the properties of the `message` defined to be sent as `REQUEST` in the `RPC_METHOD` as defined in this stub's `SERVICE`. The `RPC_METHOD` that exists on the `STUB` matches the name you gave for the `RPC_METHOD` in your built `.proto` file.
+2. #### *only for* **`UNARY`** *and* **`CLIENT_STREAM`** CALLBACK *function* // function which runs on once `CLIENT` gets a `RESPONSE` from `SERVER`
 ```javascript
 const { Stub } = require( 'firecomm' );
 const clientStub = new Stub( 
