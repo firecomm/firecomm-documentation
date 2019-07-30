@@ -20,18 +20,7 @@ stub.sayHello({greeting: "Hello world."})
 > NOTE: Client unary calls are top-level methods stored on the `Stub` instance. Method names match either the exactly Pascal-cased or Camel-cased name as they appear in your Service definition in your `.proto` file.
 
 1. ### Message `Message` // the message type as defined in your `.proto`
-2. ### [ *optional* ] Interceptor Provider Array `array` // array of Interceptor Providers to pass to the call
-   ```javascript
-   const interceptorProvider = require("./interceptors/interceptorProvider.js")
-   stub.sayHello(
-     {greeting: "Hello world."}, 
-     [interceptorProvider]
-     )
-   .then(res => console.log(res))
-   .catch(err => console.log(err)); 
-   )
-   ```
-3. ### [ *optional* ] Metadata `object` // object to be sent in Metadata of call
+2.  ### [ *optional* ] Metadata `object` // object to be sent in Metadata of call
    ```javascript
    stub.sayHello(
      {greeting: "Hello world."}, 
@@ -40,6 +29,17 @@ stub.sayHello({greeting: "Hello world."})
        metadataProperty: "metadataValue"
      }
     )
+   .then(res => console.log(res))
+   .catch(err => console.log(err)); 
+   )
+   ```
+3. ### [ *optional* ] Interceptor Provider Array `array` // array of Interceptor Providers to pass to the call
+   ```javascript
+   const interceptorProvider = require("./interceptors/interceptorProvider.js")
+   stub.sayHello(
+     {greeting: "Hello world."}, 
+     [interceptorProvider]
+     )
    .then(res => console.log(res))
    .catch(err => console.log(err)); 
    )
