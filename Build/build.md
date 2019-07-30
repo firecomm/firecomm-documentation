@@ -51,3 +51,5 @@ const package = build( PROTO_PATH, {
 
 module.exports = package;
 ```
+
+> Note: the returned `package` must be exported so that it can be used elsewhere in the application for your `Server`, client `Stubs` or your client/`Server` hybrid with `Stubs`.
