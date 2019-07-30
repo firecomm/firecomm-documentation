@@ -1,4 +1,4 @@
-# Server( )
+# Server( ) `constructor`
 ```javascript
 const { Server } = require( "firecomm" );
 const server = new Server( ERROR_HANDLER );

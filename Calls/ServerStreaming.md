@@ -1,9 +1,9 @@
-# Unary Call `class`
+# Server-Streaming Call `class`
 
-A Unary Call class. Extends the `ServerUnaryCall` object properties and methods from gRPC-Node, thus all native methods and properties are still available on the call object.
+A Server-Streaming Call class. Extends the `ServerWritableStream` object properties and methods from gRPC-Node, thus all native methods and properties are still available on the call object.
 
 ```javascript
-const unaryHandler = function(call) {
+const serverStreamHandler = function(call) {
   console.log(call.req.meta);
   call.setMeta({
     'myProperty':'myValue'
@@ -31,7 +31,7 @@ const unaryHandler = function(call) {
 
     #### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const serverStreamHandler = function(call) {
      call.setMeta({
        'myProperty':'myValue'
      });
@@ -45,7 +45,7 @@ const unaryHandler = function(call) {
 
     #### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const serverStreamHandler = function(call) {
      call.throw(new Error('My error message.'))
     }
     ```
@@ -57,7 +57,7 @@ const unaryHandler = function(call) {
 
     #### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const serverStreamHandler = function(call) {
       call.setStatus({
         'details':'Error details here.'
       })
@@ -72,11 +72,7 @@ const unaryHandler = function(call) {
 
     #### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const serverStreamHandler = function(call) {
       call.send( { greeting: "Hello World." } )
     }
     ```
-
-
-
-

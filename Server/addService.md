@@ -1,4 +1,4 @@
-# Server.addService( )
+# Server.addService( ) `method`
 
 Connects handlers and middleware functionality to your gRPC methods as defined in your `.proto` file. 
 

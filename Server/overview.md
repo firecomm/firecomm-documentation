@@ -1,4 +1,4 @@
-# Server
+# `class` Server
 
 To run your service methods, you will need to create a gRPC server. Firecomm extends the native gRPC-node `Server` class, so any and all methods found on the native class are supported by Firecomm's class.
 
