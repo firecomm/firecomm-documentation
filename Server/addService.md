@@ -1,5 +1,7 @@
 # Server.addService( )
 
+Connects handlers and middleware functionality to your gRPC methods as defined in your `.proto` file. 
+
 ```javascript
 const { Server } = require( 'firecomm' );
 const server = new Server();
