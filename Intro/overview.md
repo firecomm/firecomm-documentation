@@ -8,25 +8,29 @@ Framework extending the gRPC-Node framework. Standardized syntax for transpiling
 **gRPC-Node** has a complex API but does not ***document*** or ***support*** all of the features available in **gRPC-goLang** or **gRPC-Java**. We standardize the syntax to expose all ***existing*** features and extend ***undersupported*** features in the Node.js ecosystem. 
 
 ### Install
-``` 
+```javascript
 npm i --save firecomm
 ```
 
 ## Getting Started
 #### 1. Define a ***.proto*** file
+
+Let's begin by creating a file named `exampleAPI.proto` that will live inside a `proto` folder. The `ProtoBuf` we define in this file will define the name of the `package`, the names of the `service`s, the `rpc` methods, what the client `Stub` sends, what the `Server` returns, and the structured data that is part of each `message`.
+
 ```protobuf
+// proto/exampleAPI.proto
 syntax proto3
 
 package exampleAPI
 
 service FileTransfer {
   rpc ClientToServer (stream File) returns (Confirmation) {};
-  rpc ServerToClient (Confirmation) returns (stream File) {}
+  rpc ServerToClient (Confirmation) returns (stream File) {};
 }
 
 service HeavyMath {
-  rpc UnaryExample (Math) returns (Math) {}
-  rpc BidiExample (stream Math) returns (stream Math) {}
+  rpc UnaryExample (Math) returns (Math) {};
+  rpc BidiExample (stream Math) returns (stream Math) {};
 }
 
 message Confirmation {
@@ -43,12 +47,21 @@ message Math {
 }
 ```
 
-#### 2. build( )
-#### parameters:
-1. #### PROTO_PATH *string* // absolute path to the .proto file to be transpiled into Node.js
-2. #### *optional* CONFIG_OBJECT *object* // object with nine properties for transpiling data types. 
-```javascript 
+> Each `rpc` Method clearly defines request/response, client `Stub` to `Server` regardless of call type. For example:
+> ```protobuf
+> //    MethodName    Stub/request         Server/response
+> rpc ClientToServer (stream File) returns (Confirmation) {};
+> ```
+
+#### 2. `build()` a `package`
+
+Next let's use our `.proto` file to build a package for our `Server` and client `Stub`s. We can create a `package.js` file which will `export` a `package` containing the transpiled `service`s, `rpc` methods.
+
+```javascript
+// package.js
 const { build } = require( 'firecomm' );
+const path = require( 'path' );
+const PROTO_PATH = './'
 const package = build( PROTO_PATH, CONFIG_OBJECT );
 module.exports = package;
 ```
