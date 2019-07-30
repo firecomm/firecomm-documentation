@@ -1,4 +1,4 @@
-# Server.bind( )
+# Server.bind( ) `method`
 
 Invoke this method to connect your server instance to a channel. Allows for the creation of secure and insecure channels.
 
