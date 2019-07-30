@@ -2,7 +2,7 @@
 
 You define the behavior of your `rpc Methods` inside each of your `service`s in your `.proto` file.
 
-There are four possible types of `Calls` definable in the `ProtoBuf`. These types are delineated by `stream`.
+There are four possible types of `Calls` definable in the `ProtoBuf`. These types are defined by `stream`.
 ```protobuf
 syntax proto3
 
@@ -17,5 +17,9 @@ service FileTransfer {
   rpc ServerToClient (Chunk) returns (stream Chunk) {};
   // `Duplex` Call
   rpc DuplexTransfer (stream Chunk) returns (stream Chunk) {};
+}
+
+message Chunk {
+  bytes chunk = 1;
 }
 ```
