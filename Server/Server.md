@@ -5,7 +5,7 @@ const server = new Server( ERROR_HANDLER );
 ```
 ### parameters
 
-1. #### ERROR_HANDLER `function` // absolute path to the .proto file to be transpiled into Node.js
+1. #### [ *optional* ] ERROR_HANDLER `function` // absolute path to the .proto file to be transpiled into Node.js
 
    #### parameters
 
