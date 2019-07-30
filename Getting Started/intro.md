@@ -197,20 +197,19 @@ server.bind( [
 ] );
 server.start();
 ```
-#### 9.  Open a client Stub with a `SERVICE_DEFINITION` and `SOCKET`
-#### parameters:
-1. #### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
-2. #### SOCKET *string* // string composed of IP_ADDRESS: PORT
-3. #### *optional* SECURITY_CONFIG_OBJECT *object* // object defining the security of the connection. Default is insecure. 
+> Run your new firecomm/gRPC-Node server with: `node /server/server.js`. It may also be worthwhile to map this command to `npm start` in your `package.json`.
+#### 9.  Create a `Stub` for the `FileTransfer` service:
+Now that the `Server` is fully fleshed out, let's move to the client side by creating a client with `Stub`s for each `rpc` method on `FileTransfer`. Let's create a `fileTransferClient.js` file which will live inside our `clients` folder.
 ```javascript
+// /clients/fileTransferClient.js
 const { Stub } = require( 'firecomm' );
-const clientStub = new Stub( 
-	SERVICE, 
-	SOCKET, 
-	SECURITY_CONFIG_OBJECT 
+const package = require( '../package.js' )
+const fileTransferStub = new Stub( 
+	package.FileTransfer, 
+	'localhost: 3000',
 );
 ```
-***returns** a gRPC stub instance **object***
+> In a real gRPC distributed system with firecomm/gRPC-Node clients, each client will most likely exist separately for each `service` defined in the shared `.proto` file. However, clients can actually have any number of `Stubs` running on them on either the same `socket` or multiple `sockets`. Additionally, duplicate clients running the same service(s) might be used for load-balancing.
 #### 9.  Make `RPC_METHOD` requests from the `STUB`
 #### parameters:
 
