@@ -8,10 +8,8 @@ const stub = new Stub(
   service, 
   "localhost:3000"
 );
-stub.sayHello( {greeting: "Hello world."} )
-.then(res => console.log(res))
-.catch(err => console.log(err)); 
-)
+const stream = stub.sayHello( );
+stream.write({greeting: "Hello world."})
 ```
 
 ## parameters
@@ -64,7 +62,7 @@ stub.sayHello( {greeting: "Hello world."} )
   ### methods
 
 1. #### .emit( EVENT, DATA ) `function`
-      Inherited from the Duplex stream object from Node.js. First parameter is a string indicating the event type like "*data*", second parameter is the data to be written to the stream.
+      Inherited from the Writable stream object from Node.js. First parameter is a string indicating the event type like "*data*", second parameter is the data to be written to the stream.
 
    #### parameters
      1. #### EVENT `string` // a string representing the event type
@@ -72,7 +70,7 @@ stub.sayHello( {greeting: "Hello world."} )
 
     #### returns `undefined`
     ```javascript
-    const duplexStreamHandler = function(call) {
+    const clientStreamHandler = function(call) {
       call.emit("customEvent",{
         eventData: "Hello world"
       });
@@ -85,7 +83,7 @@ stub.sayHello( {greeting: "Hello world."} )
 
     #### returns `undefined`
     ```javascript
-    const duplexStreamHandler = function(call) {
+    const clientStreamHandler = function(call) {
       call.write({
         greeting: "Hello world."
       })
