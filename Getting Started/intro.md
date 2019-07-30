@@ -43,7 +43,7 @@ message Math {
 > rpc ClientToServer (stream File) returns (Confirmation) {};
 > ```
 
-#### 2. Let's `build()` a `package`
+## 2. Let's `build()` a `package`
 
 Now that we've defined our API in a ProtoBuf, let's pass an absolute path to our `.proto` file to build a `package`. We will create a `package.js` file which will live in our root folder and `export` a configured `package` containing the transpiled `service`s and `rpc` methods.
 
@@ -66,7 +66,7 @@ module.exports = package;
 
 > Advanced Note: whether you're building a firecomm/gRPC-Node `Server`, a firecomm/gRPC-Node client with `Stub`s, or a firecomm/gRPC-Node hybrid client/server, it is important to build a package with configurations that match the API for your distributed system. Every server and client should have the same `.proto` file regardless of language.
 
-#### 3. Create a server
+## 3. Create a server
 Next, we will create a `new Server()` inside a `server.js` file which will live in a `server` folder. 
 
 ```javascript
@@ -74,9 +74,9 @@ Next, we will create a `new Server()` inside a `server.js` file which will live 
 const { Server } = require( 'firecomm' );
 const server = new Server();
 ```
-#### 4. Define the server-side handlers for our `FileTransfer` service.
+## 4. Define the server-side handlers for our `FileTransfer` service.
 
-Let's define handler functions for our two FileTransfer methods. Method handler functions will contain the server-side logic for our two services. Let's start by defining the handlers for our `FileTransfer` service in a `fileTransferHandlers.js` file which will live inside our `server` folder.
+Let's define handler functions for our two `FileTransfer` `rpc` methods. Method handler functions will contain the server-side logic for our `service`s. Let's create a `fileTransferHandlers.js` file which will live inside our `server` folder.
 
 ```javascript
 // /server/fileTransferHandlers.js
@@ -93,7 +93,7 @@ module.exports = {
 }
 ```
 
-#### 5. Define the server-side handlers for our `HeavyMath` service.
+## 5. Define the server-side handlers for our `HeavyMath` service.
 
 Let's define handler functions for our two HeavyMath methods. Let's continue by defining the handlers for our `HeavyMath` service in a `heavyMathHandlers.js` file which will live inside our `server` folder.
 
@@ -112,7 +112,7 @@ module.exports = {
 }
 ```
 
-#### 6. Add each `service` from the package to the `Server`
+## 6. Add each `service` from the package to the `Server`
 
 Let's now return to the `server.js` file and map each `service` onto our `Server`. Mirroring the structure of the `.proto` file we transpiled, the `package` object we built has both of the `service`s on it as properties. We use the `Server` method `.addService` to add the `services` one at a time and map each of the `rpc` methods to the handlers we wrote.  
 
@@ -135,7 +135,7 @@ server.addService( package.FileTransfer,   {
   BidiMath: BidiMathHandler,
  });
 ```
-> Note: The `Server.addService()` method also allows the mapping of middleware functions or a middleware stack of functions in the form of an `array` to be passed in order to effect `rpc` methods before the handler which should come last in the array. For example: 
+> Note: The `Server.addService()` method also allows the mapping of middleware functions or a middleware stack of functions in the form of an `array` to be passed in order to influence `rpc` methods before the handler which should come last in the array. For example: 
 > ```javascript
 > server.addService( package.HeavyMath,   > { 
 >   UnaryMath: [ UnaryMathMiddleware, UnaryMathHandler ],
@@ -143,7 +143,7 @@ server.addService( package.FileTransfer,   {
 > }, [ serviceLevelMiddleware1, serviceLevelMiddleware2 ]);
 > ```
 
-#### 7. Bind the server to `socket`s
+## 7. Bind the server to `socket`(s)
 
 ```javascript
 // /server/server.js
@@ -172,7 +172,7 @@ server.bind('0.0.0.0: 3000');
 >   '0.0.0.0: 2999', 
 > ] );
 > ```
-#### 8. Start the server
+## 8. Start the server
 ```javascript
 // /server/server.js
 const { Server } = require( 'firecomm' );
@@ -198,7 +198,7 @@ server.bind( [
 server.start();
 ```
 > Run your new firecomm/gRPC-Node server with: `node /server/server.js`. It may also be worthwhile to map this command to `npm start` in your `package.json`.
-#### 9.  Create a `Stub` for the `FileTransfer` service:
+## 9.  Create a `Stub` for the `FileTransfer` service:
 Now that the `Server` is fully fleshed out, let's move to the client side by creating a client with `Stub`s for each `rpc` method on `FileTransfer`. Let's create a `fileTransferClient.js` file which will live inside our `clients` folder.
 ```javascript
 // /clients/fileTransferClient.js
@@ -209,36 +209,25 @@ const fileTransferStub = new Stub(
 	'localhost: 3000',
 );
 ```
-> In a real gRPC distributed system with firecomm/gRPC-Node clients, each client will most likely exist separately for each `service` defined in the shared `.proto` file. However, clients can actually have any number of `Stubs` running on them on either the same `socket` or multiple `sockets`. Additionally, duplicate clients running the same service(s) might be used for load-balancing.
-#### 9.  Make `RPC_METHOD` requests from the `STUB`
-#### parameters:
+> In a real gRPC distributed system with firecomm/gRPC-Node clients, each client will most likely exist separately for each `service` defined in the shared `.proto` file. However, clients can actually have any number of `Stubs` running on them on either the same `socket` or multiple `sockets`. Additionally, duplicate clients running the same service(s) can be used to allow server level load-balancing.
+## 10.  Make `ClientToServer` and `ServerToClient` service requests from the `Stub`
 
-1.  #### MESSAGE _object_ // Must have the properties of the `message` defined to be sent as `REQUEST` in the `RPC_METHOD` as defined in this stub's `SERVICE`. The `RPC_METHOD` that exists on the `STUB` matches the name you gave for the `RPC_METHOD` in your built `.proto` file.
-2. #### *only for* **`UNARY`** *and* **`CLIENT_STREAM`** CALLBACK *function* // function which runs on once `CLIENT` gets a `RESPONSE` from `SERVER`
 ```javascript
+// /clients/fileTransferClient.js
 const { Stub } = require( 'firecomm' );
-const clientStub = new Stub( 
-	SERVICE, 
-	SOCKET, 
-	SECURITY_CONFIG_OBJECT 
+const package = require( '../package.js' )
+const fileTransferStub = new Stub( 
+	package.FileTransfer, 
+	'localhost: 3000',
 );
-clientStub.exampleUnary( MESSAGE, CALLBACK );
 const clientStream = 
-  clientStub.exampleClientStream( MESSAGE );
+  fileTransferStub.ClientToServer( MESSAGE );
   // some logic to warrant a streaming response
   clientStream.write( MESSAGE );
 const serverStream = 
-  clientStub.exampleServerStream( MESSAGE );
+  fileTransferStub.ServerToClient( MESSAGE );
   // listeners for stream from server
   serverStream.on( 'data', response => 
   someFunctionality(request));
-const duplex = 
-  clientStub.exampleDuplex( MESSAGE );
-  // listeners for stream from server
-  duplex.on( 'data', response => 
-  someFunctionality(request));
-  // some logic to warrant a streaming request
-  duplex.write( 'data', response => 
-  someFunctionality(request));
 ```
-`CLIENT_STREAM`, `SERVER_STREAM`, and `DUPLEX` ***return** a stream **object***
+
