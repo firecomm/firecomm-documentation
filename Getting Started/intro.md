@@ -1,10 +1,10 @@
+# Getting Started
 ## Install
 ``` 
 npm i --save firecomm
 ```
 
-# Getting Started
-#### 1. Define a ***.proto*** file
+## 1. Define a `.proto` file
 Let's begin by creating a file named `exampleAPI.proto` that will live inside a `proto` folder. The `ProtoBuf` we define in this file will define the name of the `package`, the names of the `service`s, the `rpc` methods, what the client `Stub` sends, what the `Server` returns, and the structured data that is part of each `message`.
 
 ```protobuf
@@ -126,13 +126,26 @@ const { UnaryMathHandler,
 	BidiMathHandler } = require ( './heavyMathHandlers.js );
 
 const server = new Server();
-server.addService( package.FileTransfer,  );
+server.addService( package.FileTransfer,   { 
+  ClientToServer: ClientToServerHandler,
+  ServerToClient: ServerToClientHandler,
+ });
+ server.addService( package.HeavyMath,   { 
+  UnaryMath: UnaryMathHandler,
+  BidiMath: BidiMathHandler,
+ });
 ```
-*doesn't **return** anything*
-#### 6. Bind the server `SOCKETS`
+> Note: The `Server.addService()` method also allows the mapping of middleware functions or a middleware stack of functions in the form of an `array` to be passed in order to effect `rpc` methods before the handler which should come last in the array. For example: 
+> ```javascript
+> server.addService( package.HeavyMath,   > { 
+>   UnaryMath: [ UnaryMathMiddleware, UnaryMathHandler ],
+>   BidiMath: ServerToClientHandler,
+> }, [ serviceLevelMiddleware1, serviceLevelMiddleware2 ]);
+> ```
+
+#### 7. Bind the server `SOCKETS`
 #### parameters:
-1. #### SOCKETS *string* or *array* // string composed of IP_ADDRESS: PORT or an array of strings to bind multiple sockets
-2. #### *optional* SECURITY_CONFIG_OBJECT *object* // object defining the security of the connection. Default is insecure. 
+ 
 ```javascript
 const { Server } = require( 'firecomm' );
 const server = new Server();
