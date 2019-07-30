@@ -143,26 +143,61 @@ server.addService( package.FileTransfer,   {
 > }, [ serviceLevelMiddleware1, serviceLevelMiddleware2 ]);
 > ```
 
-#### 7. Bind the server `SOCKETS`
-#### parameters:
- 
+#### 7. Bind the server to `socket`s
+
 ```javascript
+// /server/server.js
 const { Server } = require( 'firecomm' );
+const package = require( '../package.js' );
+const { ClientToServerHandler,
+	ServerToClientHandler } = require ( './fileTransferHandlers.js );
+const { UnaryMathHandler,
+	BidiMathHandler } = require ( './heavyMathHandlers.js );
+
 const server = new Server();
-server.addService( SERVICE, RPC_METHODS_OBJECT );
-server.bind( SOCKETS, SECURITY_CONFIG_OBJECT );
+server.addService( package.FileTransfer,   { 
+  ClientToServer: ClientToServerHandler,
+  ServerToClient: ServerToClientHandler,
+ });
+ server.addService( package.HeavyMath,   { 
+  UnaryMath: UnaryMathHandler,
+  BidiMath: BidiMathHandler,
+ });
+server.bind('0.0.0.0: 3000');
 ```
-*doesn't **return** anything*
-#### 7. Start the server
+> Note: `Server`s can be passed an array of `socket`s to bind any number of `socket`s. For example:
+> ```javascript
+> server.bind( [ 
+>   '0.0.0.0: 3000', 
+>   '0.0.0.0: 2999', 
+> ] );
+> ```
+#### 8. Start the server
 ```javascript
+// /server/server.js
 const { Server } = require( 'firecomm' );
+const package = require( '../package.js' );
+const { ClientToServerHandler,
+	ServerToClientHandler } = require ( './fileTransferHandlers.js );
+const { UnaryMathHandler,
+	BidiMathHandler } = require ( './heavyMathHandlers.js );
+
 const server = new Server();
-server.addService( SERVICE, RPC_METHODS_OBJECT );
-server.bind( SOCKETS, SECURITY_CONFIG_OBJECT );
+server.addService( package.FileTransfer,   { 
+  ClientToServer: ClientToServerHandler,
+  ServerToClient: ServerToClientHandler,
+ });
+ server.addService( package.HeavyMath,   { 
+  UnaryMath: UnaryMathHandler,
+  BidiMath: BidiMathHandler,
+ });
+server.bind( [ 
+  '0.0.0.0: 3000', 
+  '0.0.0.0: 2999', 
+] );
 server.start();
 ```
-*doesn't **return** anything*
-#### 8.  Open a client Stub with a `SERVICE_DEFINITION` and `SOCKET`
+#### 9.  Open a client Stub with a `SERVICE_DEFINITION` and `SOCKET`
 #### parameters:
 1. #### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
 2. #### SOCKET *string* // string composed of IP_ADDRESS: PORT
