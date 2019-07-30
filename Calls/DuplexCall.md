@@ -1,9 +1,9 @@
-# Server-Streaming Call `class`
+# Duplex Call `class`
 
-A Server-Streaming Call class. Extends the `ServerWritableStream` object properties and methods from gRPC-Node, thus all native methods and properties are still available on the call object.
+A Duplex Call class. Extends the `ServerDuplexStream` object properties and methods from gRPC-Node, thus all native methods and properties are still available on the call object.
 
 ```javascript
-const serverStreamHandler = function(call) {
+const duplexStreamHandler = function(call) {
   console.log(call.req.meta);
   call.sendMeta({
     'myProperty':'myValue'
@@ -19,7 +19,6 @@ const serverStreamHandler = function(call) {
 1. ### .req `function` // an object containing information sent from the client
    ### properties
    1. #### meta `object` // an object containing the unary request metadata sent from the client
-   2. #### body `object` // an object containing the unary request body sent from the client
 
 ## methods
 
@@ -30,7 +29,7 @@ const serverStreamHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const serverStreamHandler = function(call) {
+    const duplexStreamHandler = function(call) {
      call.sendMeta({
        'myProperty':'myValue'
      });
@@ -44,7 +43,7 @@ const serverStreamHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const serverStreamHandler = function(call) {
+    const duplexStreamHandler = function(call) {
      call.throw(new Error('My error message.'))
     }
     ```
@@ -57,7 +56,7 @@ const serverStreamHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const serverStreamHandler = function(call) {
+    const duplexStreamHandler = function(call) {
       call.setStatus({
         'details':'Error details here.'
       })
@@ -65,7 +64,7 @@ const serverStreamHandler = function(call) {
     }
     ```
 4. ### .emit( EVENT, DATA ) `function`
-      Inherited from the Writable stream object from Node.js. First parameter is a string indicating the event type like "*data*", second parameter is the data to be written to the stream.
+      Inherited from the Duplex stream object from Node.js. First parameter is a string indicating the event type like "*data*", second parameter is the data to be written to the stream.
 
    ### parameters
      1. #### EVENT `string` // a string representing the event type
@@ -73,12 +72,12 @@ const serverStreamHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const serverStreamHandler = function(call) {
+    const duplexStreamHandler = function(call) {
       call.emit("customEvent",{
         eventData: "Hello world"
       });
     ```
-4. ### .write( MESSAGE ) `function`
+5. ### .write( MESSAGE ) `function`
       Writes a message to the writable stream. Message should match the message type for the gRPC server-streaming method the handler is written for.
 
    ### parameters
@@ -86,8 +85,25 @@ const serverStreamHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const serverStreamHandler = function(call) {
+    const duplexStreamHandler = function(call) {
       call.write({
         greeting: "Hello world."
       })
+    ```
+6. ### .on( EVENT, CALLBACK ) `function`
+      Inherited from the Duplex stream object from Node.js. First parameter is a string indicating the event type like "*data*", second parameter is a callback to handle emitted data.
+
+   ### parameters
+     1. #### EVENT `string` // a string representing the event type
+     2. #### CALLBACK `function` // a function to handle any data emitted from the Readable stream
+        #### parameters
+        1. ##### DATA `any` // emitted data
+  
+
+    ### returns `undefined`
+    ```javascript
+    const clientStreamHandler = function(call) {
+      call.on("data",(data)=>{
+        console.log(data);
+    });
     ```

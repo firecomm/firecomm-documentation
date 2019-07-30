@@ -45,7 +45,7 @@ const clientStreamHandler = function(call) {
     ```
 3. ### .setStatus( METADATA ) `function`
       Adds metadata in the trailers associated with an error message. 
-      > NOTE: Must be called before .throw();
+      > NOTE: Must be called before `.throw()`;
    
    ### parameters
      1. #### METADATA `object` // takes in a JSON object of properties and values that will get assigned and sent as metadata for an error message.
