@@ -5,28 +5,31 @@ npm i --save firecomm
 
 # Getting Started
 #### 1. Define a ***.proto*** file
+Let's begin by creating a file named `exampleAPI.proto` that will live inside a `proto` folder. The `ProtoBuf` we define in this file will define the name of the `package`, the names of the `service`s, the `rpc` methods, what the client `Stub` sends, what the `Server` returns, and the structured data that is part of each `message`.
+
 ```protobuf
+// proto/exampleAPI.proto
 syntax proto3
 
 package exampleAPI
 
 service FileTransfer {
-  rpc ClientToServer (stream File) returns (Status) {};
-  rpc ServerToClient (Status) returns (stream File) {}
+  rpc ClientToServer (stream File) returns (Confirmation) {};
+  rpc ServerToClient (Confirmation) returns (stream File) {};
 }
 
 service HeavyMath {
-  rpc UnaryMath (Math) returns (Math) {}
-  rpc BidiMath (stream Math) returns (stream Math) {}
+  rpc UnaryMath (Math) returns (Math) {};
+  rpc BidiMath (stream Math) returns (stream Math) {};
 }
 
-message Status {
+message Confirmation {
   bool status = 1;
   string comments = 2;
 }
 
 message File {
-  bytes fileBytes = 1;
+  bytes fileBuffer = 1;
 }
 
 message Math {
@@ -34,63 +37,96 @@ message Math {
 }
 ```
 
-#### 2. build( )
-#### parameters:
+> Each `rpc` Method clearly defines request/response, client `Stub` to `Server` regardless of call type. For example:
+> ```protobuf
+> //    MethodName    Stub/request         Server/response
+> rpc ClientToServer (stream File) returns (Confirmation) {};
+> ```
+
+#### 2. Let's `build()` a `package`
+
+Now that we've defined our API in a ProtoBuf, let's pass an absolute path to our `.proto` file to build a `package`. We will create a `package.js` file which will live in our root folder and `export` a configured `package` containing the transpiled `service`s and `rpc` methods.
+
+We will also define our configuration for how our packaged methods will handle different data types.
+
+```javascript
+// package.js
 const { build } = require( 'firecomm' );
+const path = require( 'path' );
+const PROTO_PATH = path.join( __dirname, './proto/exampleAPI.proto' );
+
+const CONFIG_OBJECT = {
+  keepCase: true, // keeps everything camelCased
+  longs: Number, // transpiles the enormous `double`s for our HeavyMath into a javascript Number rather than a String
+  bytes: String, // helps us manage the FileTransfer bytes as javascript `String`s rather than pure hexadecimal Buffers or uint8Arrays
+}
 const package = build( PROTO_PATH, CONFIG_OBJECT );
 module.exports = package;
 ```
-***returns** a gRPC package **object** with* `SERVICE_DEFINITION`*s as properties*
+
+> Advanced Note: whether you're building a firecomm/gRPC-Node `Server`, a firecomm/gRPC-Node client with `Stub`s, or a firecomm/gRPC-Node hybrid client/server, it is important to build a package with configurations that match the API for your distributed system. Every server and client should have the same `.proto` file regardless of language.
 
 #### 3. Create a server
+Next, we will create a `new Server()` inside a `server.js` file which will live in a `server` folder. 
+
 ```javascript
+// /server/server.js
 const { Server } = require( 'firecomm' );
 const server = new Server();
 ```
-***returns** a gRPC server instance **object***
-#### 4. Define your `HANDLER_FUNCTION` for each `RPC_METHOD` and/or `MIDDLEWARE_STACK` functions for each `RPC_METHOD`
-1. #### CALL *object* // call methods are specific to each `CALL_TYPE`. Possible `CALL_TYPE`s are `UNARY`, `CLIENT_STREAM`, `SERVER_STREAM`, and `DUPLEX`.
+#### 4. Define the server-side handlers for our `FileTransfer` service.
+
+Let's define handler functions for our two FileTransfer methods. Method handler functions will contain the server-side logic for our two services. Let's start by defining the handlers for our `FileTransfer` service in a `fileTransferHandlers.js` file which will live inside our `server` folder.
+
 ```javascript
-exampleUnaryHandler( CALL ) {
-  // single response
+// /server/fileTransferHandlers.js
+ClientToServerHandler( CALL ) {
   CALL.send({ response: value });
 };
-exampleClientStreamHandler( CALL ) {
-  // listeners for stream from client
+ServerToClientHandler( CALL ) {
   CALL.on('data', request => someFunctionality(request));
-  // single response
   CALL.send({ response: value });
-};
-exampleServerStreamHandler( CALL ) {
-  // some logic to warrant a streaming response
-  CALL.write({ responseChunk: value });
-};
-exampleDuplexHandler( CALL ) {
-  // listeners for stream from client
-  CALL.on('data', request => someFunctionality(request));
-  // some logic to warrant a streaming response
-  CALL.write({ responseChunk: value });
 };
 module.exports = { 
-	exampleUnary,
-	exampleClientStream,
-	exampleServerStream,
-	exampleDuplex,
+	ClientToServerHandler,
+	ServerToClientHandler,
 }
 ```
-*doesn't **return** anything*
-#### 5. Add each `SERVICE_DEFINITION` for the server to handle
-#### parameters:
-1. #### SERVICE_DEFINITION *object* // Service as it is named on your `.proto` file. **Is a property on the built package.**
-2. #### RPC_METHODS_OBJECT *object* // maps each `RPC_METHOD`	to it's `HANDLER_FUNCTION` or `MIDDLEWARE_STACK`.
-	#### RPC_METHOD *property* // must match each `rpc Method` named in the `.proto`
-	#### HANDLER_FUNCTION *value* // function to handle the `rpc Method`
-	#### *OR*
-	#### MIDDLEWARE_STACK *value* // array of *functions* to handle the `rpc Method`. The main `HANDER_FUNCTION` to be run must be last in the array.
+
+#### 5. Define the server-side handlers for our `HeavyMath` service.
+
+Let's define handler functions for our two HeavyMath methods. Let's continue by defining the handlers for our `HeavyMath` service in a `heavyMathHandlers.js` file which will live inside our `server` folder.
+
 ```javascript
+// /server/heavyMathHandlers.js
+UnaryMathHandler( CALL ) {
+  CALL.send({ response: value });
+};
+BidiMathHandler( CALL ) {
+  CALL.on('data', request => someFunctionality(request));
+  CALL.send({ response: value });
+};
+module.exports = { 
+	UnaryMathHandler,
+	BidiMathHandler,
+}
+```
+
+#### 6. Add each `service` from the package to the `Server`
+
+Let's now return to the `server.js` file and map each `service` onto our `Server`. Mirroring the structure of the `.proto` file we transpiled, the `package` object we built has both of the `service`s on it as properties. We use the `Server` method `.addService` to add the `services` one at a time and map each of the `rpc` methods to the handlers we wrote.  
+
+```javascript
+// /server/server.js
 const { Server } = require( 'firecomm' );
+const package = require( '../package.js' );
+const { ClientToServerHandler,
+	ServerToClientHandler } = require ( './fileTransferHandlers.js );
+const { UnaryMathHandler,
+	BidiMathHandler } = require ( './heavyMathHandlers.js );
+
 const server = new Server();
-server.addService( SERVICE, RPC_METHODS_OBJECT );
+server.addService( package.FileTransfer,  );
 ```
 *doesn't **return** anything*
 #### 6. Bind the server `SOCKETS`
