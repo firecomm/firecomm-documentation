@@ -201,7 +201,7 @@ server.start();
 ## 9.  Create a `Stub` for the `FileTransfer` service:
 Now that the `Server` is fully fleshed out, let's move to the client side by creating a client with `Stub`s for each `rpc` method on `FileTransfer`. Let's create a `fileTransferClient.js` file which will live inside our `clients` folder.
 ```javascript
-// /clients/fileTransferClient.js
+// /clients/fileTransfer.js
 const { Stub } = require( 'firecomm' );
 const package = require( '../package.js' )
 const fileTransferStub = new Stub( 
@@ -213,7 +213,7 @@ const fileTransferStub = new Stub(
 ## 10.  Make `ClientToServer` and `ServerToClient` service requests from the `Stub`
 
 ```javascript
-// /clients/fileTransferClient.js
+// /clients/fileTransfer.js
 const { Stub } = require( 'firecomm' );
 const package = require( '../package.js' )
 const fileTransferStub = new Stub( 
@@ -230,4 +230,37 @@ const serverStream =
   serverStream.on( 'data', response => 
   someFunctionality(request));
 ```
+> Run your new firecomm/gRPC-Node client with: `node /clients/fileTransfer.js`. It may also be worthwhile to map this command to a custom command like `npm run transfer` in your `package.json`.
 
+## 11.  Create a `Stub` for the `HeavyMath` service:
+Now that the `Server` and `FileTransfer` Stub are fully fleshed out, let's create another `Stub` with access to each `rpc` method on `HeavyMath`. We'll create a `heavyMath.js` file which will live inside our `clients` folder.
+```javascript
+// /clients/heavyMath.js
+const { Stub } = require( 'firecomm' );
+const package = require( '../package.js' )
+const heavyMathStub = new Stub( 
+	package.HeavyMath, 
+	'localhost: 2999',
+);
+```
+> Note: two different clients *can* share a single socket on the server, in which case all concurrent requests and responses will be multiplexed. However, in a real gRPC distributed system, this is unlikely for two different services to share a socket.
+
+## 12. Make `UnaryMath` and `BidiMath` service requests from the `Stub`
+```javascript
+// /clients/heavyMath.js
+const { Stub } = require( 'firecomm' );
+const package = require( '../package.js' )
+const heavyMathStub = new Stub( 
+	package.HeavyMath, 
+	'localhost: 2999',
+);
+heavyMathStub.UnaryMath( MESSAGE );
+  // some logic to warrant a streaming response
+  clientStream.write( MESSAGE );
+const bidiStream = 
+  heavyMathStub.BidiMath( MESSAGE );
+  // listeners for stream from server
+  serverStream.on( 'data', response => 
+  someFunctionality(request));
+```
+> Run your new firecomm/gRPC-Node client with: `node /clients/fileTransfer.js`. It may also be worthwhile to map this command to a custom command like `npm run transfer` in your `package.json`.
