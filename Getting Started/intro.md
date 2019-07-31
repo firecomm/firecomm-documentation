@@ -263,4 +263,4 @@ const bidiStream =
   serverStream.on( 'data', response => 
   someFunctionality(request));
 ```
-> Run your new firecomm/gRPC-Node client with: `node /clients/fileTransfer.js`. It may also be worthwhile to map this command to a custom command like `npm run transfer` in your `package.json`.
+> Run your new firecomm/gRPC-Node client with: `node /clients/heavyMath.js`. It may also be worthwhile to map this command to a custom command like `npm run math` in your `package.json`.
