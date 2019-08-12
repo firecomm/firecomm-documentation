@@ -9,13 +9,13 @@ Let's begin by creating a file named `exampleAPI.proto` that will live inside a 
 
 ```protobuf
 // proto/exampleAPI.proto
-syntax proto3
+syntax = 'proto3';
 
-package exampleAPI
+package exampleAPI;
 
-service FileTransfer {
-  rpc ClientToServer (stream File) returns (Confirmation) {};
-  rpc ServerToClient (Confirmation) returns (stream File) {};
+service ArrayTransfer {
+  rpc ClientToServer (stream Array) returns (Confirmation) {};
+  rpc ServerToClient (Confirmation) returns (stream Array) {};
 }
 
 service HeavyMath {
@@ -28,8 +28,8 @@ message Confirmation {
   string comments = 2;
 }
 
-message File {
-  bytes fileBuffer = 1;
+message Array {
+  repeated Math = 1;
 }
 
 message Math {
@@ -74,18 +74,32 @@ Next, we will create a `new Server()` inside a `server.js` file which will live 
 const { Server } = require( 'firecomm' );
 const server = new Server();
 ```
-## 4. Define the server-side handlers for our `FileTransfer` service.
+## 4. Define the server-side handlers for our `ArrayTransfer` service.
 
-Let's define handler functions for our two `FileTransfer` `rpc` methods. Method handler functions will contain the server-side logic for our `service`s. Let's create a `fileTransferHandlers.js` file which will live inside our `server` folder.
+Let's define handler functions for our two `ArrayTransfer` `rpc` methods. Method handler functions will contain the server-side logic for our `service`s. Let's create a `arrayTransferHandlers.js` file which will live inside our `server` folder.
 
 ```javascript
-// /server/fileTransferHandlers.js
-ClientToServerHandler( CALL ) {
-  CALL.send({ response: value });
+// /server/arrayTransferHandlers.js
+ClientToServerHandler( onClientStream ) {
+  let resArray = [];
+  onClientStream.on('data', (array) => {
+    resArray = resArray.concat(array);
+  })
+  onClientStream.on('end', () => {
+    onClientStream.send({ 
+      status: true,
+      comments: 'response from server: the client stream is complete',
+      array : resArray,
+    });
+  })
 };
-ServerToClientHandler( CALL ) {
-  CALL.on('data', request => someFunctionality(request));
-  CALL.send({ response: value });
+ServerToClientHandler( onClientCall ) {
+  let count = 0;
+  setInterval(() => {
+    count += 1;
+    onClientCall.write({array: [count, count / 2]})
+  }, 1);
+  
 };
 module.exports = { 
 	ClientToServerHandler,
@@ -150,9 +164,9 @@ server.addService( package.FileTransfer,   {
 const { Server } = require( 'firecomm' );
 const package = require( '../package.js' );
 const { ClientToServerHandler,
-	ServerToClientHandler } = require ( './fileTransferHandlers.js );
+	ServerToClientHandler } = require ( './fileTransferHandlers.js' );
 const { UnaryMathHandler,
-	BidiMathHandler } = require ( './heavyMathHandlers.js );
+	BidiMathHandler } = require ( './heavyMathHandlers.js' );
 
 const server = new Server();
 server.addService( package.FileTransfer,   { 
@@ -199,9 +213,9 @@ server.start();
 ```
 > Run your new firecomm/gRPC-Node server with: `node /server/server.js`. It may also be worthwhile to map this command to `npm start` in your `package.json`.
 ## 9.  Create a `Stub` for the `FileTransfer` service:
-Now that the `Server` is fully fleshed out, let's move to the client side by creating a client with `Stub`s for each `rpc` method on `FileTransfer`. Let's create a `fileTransferClient.js` file which will live inside our `clients` folder.
+Now that the `Server` is fully fleshed out, let's move to the client side by creating a client with `Stub`s for each `rpc` method on `ArrayTransfer`. Let's create a `arrayTransfer.js` file which will live inside our `clients` folder.
 ```javascript
-// /clients/fileTransfer.js
+// /clients/arrayTransfer.js
 const { Stub } = require( 'firecomm' );
 const package = require( '../package.js' )
 const fileTransferStub = new Stub( 
