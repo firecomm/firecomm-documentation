@@ -2,7 +2,7 @@
 Object for sending **one** stream-starting RPC Method **request** and listening for **any number** of RPC Method **responses**.
 | Returned from          | Type   | Peer         | Description                                                                |
 |------------------------|--------|--------------|----------------------------------------------------------------------------|
-| `Stub.<RPCmethodName>()` | Object | Server-Stream | `<RPCmethodName>` defined with `stream` on request or without `stream` on response in `proto`. Peer is defined by methodName at Server | 
+| `Stub.<RPCmethodName>()` | Object | Server-Stream | `<RPCmethodName>` defined without `stream` on request and with `stream` on response in `proto`. Peer is defined by methodName at Server | 
 
 ## Methods
 ### `.send(message)`
