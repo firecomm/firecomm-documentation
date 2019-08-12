@@ -1,5 +1,7 @@
-# build(proto_path, configObject)
+# firecomm.build()
 Build step function for compiling the `proto` into JavaScript.
+
+## firecomm.build(proto_path, configObject)
 
 parameters:
 
