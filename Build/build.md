@@ -18,7 +18,7 @@ module.exports = package;
 
     1. ##### keepCase: `boolean` // allows rpc methods to have strict camelCasing or PascalCasing within the transpiled `package`
     2. ##### longs: `String` or `Number` // `int64`s, `uint64`s, `sint64`s, and `fixed64`s will be coerced into a `String` or a `Number`.
-    3. ##### enum: `String` // Java-like `enumerable` objects will be coerced into a `String`.
+    3. ##### enum: `String` // Java-like `enumerable` will be accessible from an Integer or from the Enumerable option written as a `String`.
     4. ##### bytes: `Array` or `String` // gRPC `byteStrings` will be coerced into a `String` or an `Array`. 
     5. ##### defaults: `boolean` // allows the setting of default values for `message` types.
     6. ##### arrays: `boolean` // allows the coercion of `repeated` `message` types into `Array`s.
