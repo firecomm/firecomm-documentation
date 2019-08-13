@@ -17,7 +17,7 @@ parameters:
 | Name          | Type     | Description                                                                                     |
 |---------------|----------|-------------------------------------------------------------------------------------------------|
 | metadata       | Object   | Metadata to be sent to peer. Keys are normalized to lowercase ASCII. |
-returns `undefined`
+returns `Server Stream`
 
 ### `.send(message)`
 
@@ -27,7 +27,7 @@ parameters:
 | Name          | Type     | Description                                                                                     |
 |---------------|----------|-------------------------------------------------------------------------------------------------|
 | message       | Object   | Properties should match the request `message` defined in the `proto`                            |
-returns `undefined`
+returns `Server Stream`
 
 ### `.catch(callback)`
 Listener for `'error'` event from peer.
@@ -36,7 +36,7 @@ parameters:
 | Name     | Type     | Parameter | Description                                   |
 |----------|----------|-----------|-----------------------------------------------|
 | callback(error) | Function | error     | Peer's thrown `error` is passed into callback |
-returns `undefined`
+returns `Server Stream`
 
 ### `.on(event, callback)`
 Listener for `'data'` event from peer.
@@ -47,7 +47,7 @@ parameters:
 | event    | String       | Event to listen for from peer.                                         |
 |          | 'data'       | Listens for peer response. Callback gets passed `Message`.              |
 | callback | Function     | Is passed `Message` based on event.     |
-returns `undefined`
+returns `Server Stream`
 
 ### `.throw()`
 Non-chainable method that cancels ongoing connection. Results in the call ending with a CANCELLED status, unless it has already ended with some other status.
