@@ -20,6 +20,7 @@ returns `Server`
 |                   |                     | middlewareArray | Array of functions from index 0 up to be passed `Server Unary`, `Server Client-Stream Response`, `Server Stream`, or `Server Duplex` based on RPC method definition in `proto`. |
 | serviceMiddleware | Array               |                 | Array of functions from index 0 up to be passed `Server Unary`, `Server Client-Stream Response`, `Server Stream`, or `Server Duplex` based on RPC method definition in `proto`. |
 | errorCallback     | Function            |                 |                                                                                                                                                                                 |
+returns `undefined`
 
 
 
