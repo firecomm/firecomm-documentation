@@ -19,8 +19,8 @@ stub.sayHello( { greeting:"Hello world." } )
 
 The primary methods that are available on the stub.
   1.  The constructor, which will allow you to instantiate a channel for that service.
-  2.  The methods that are available on an ordinary gRPC client/channel.
-  3.  Your gRPC methods from the service you passed into that Stub, which have been extended by Firecomm with added functionality and simplified syntax;
+  2.  Your gRPC methods from the service you passed into that Stub, which have been extended by Firecomm with added functionality and simplified syntax;
+  3.  The methods that are available on an ordinary gRPC client/channel.
 
 # Constructor
 
@@ -35,4 +35,10 @@ const stub = new Stub(
   "localhost:3000", 
   { certificate: sslCertificate }
 );
+```
+
+# Methods
+
+```javascript
+
 ```
