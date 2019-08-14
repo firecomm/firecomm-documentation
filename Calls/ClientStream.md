@@ -1,9 +1,9 @@
-# Unary Call `class`
+# Client-Streaming Call `class`
 
-A Unary Call class. Extends the `ServerUnaryCall` object properties and methods from gRPC-Node, thus all native methods and properties are still available on the call object.
+A Client-Streaming Call class. Extends the `ServerReadableStream` object properties and methods from gRPC-Node, thus all native methods and properties are still available on the call object.
 
 ```javascript
-const unaryHandler = function(call) {
+const clientStreamHandler = function(call) {
   console.log(call.req.meta);
   call.setMeta({
     'myProperty':'myValue'
@@ -16,11 +16,6 @@ const unaryHandler = function(call) {
 
 ## properties
 
-1. ### .req `function` // an object containing information sent from the client
-   ### properties
-   1. #### meta `object` // an object containing the unary request metadata sent from the client
-   2. #### body `object` // an object containing the unary request body sent from the client
-
 ## methods
 
 1. ### .setMeta( METADATA ) `function`
@@ -30,7 +25,7 @@ const unaryHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const clientStreamHandler = function(call) {
      call.setMeta({
        'myProperty':'myValue'
      });
@@ -44,38 +39,40 @@ const unaryHandler = function(call) {
 
     ### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const clientStreamHandler = function(call) {
      call.throw(new Error('My error message.'))
     }
     ```
 3. ### .setStatus( METADATA ) `function`
-      Adds metadata in the trailers associated with an error message.
+      Adds metadata in the trailers associated with an error message. 
+      > NOTE: Must be called before `.throw()`;
    
    ### parameters
      1. #### METADATA `object` // takes in a JSON object of properties and values that will get assigned and sent as metadata for an error message.
 
     ### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
+    const clientStreamHandler = function(call) {
       call.setStatus({
         'details':'Error details here.'
       })
       call.throw(new Error('My error message.'))
     }
     ```
-4. ### .send( MESSAGE ) `function`
-      Ends the request-response cycle, data is passed in through the parameter.
+4. ### .on( EVENT, CALLBACK ) `function`
+      Inherited from the Readable stream object from Node.js. First parameter is a string indicating the event type like "*data*", second parameter is a callback to handle emitted data.
 
    ### parameters
-     1. #### MESSAGE `object` // an object matching the keys and properties of your gRPC method types.
+     1. #### EVENT `string` // a string representing the event type
+     2. #### CALLBACK `function` // a function to handle any data emitted from the Readable stream
+        #### parameters
+        1. ##### DATA `any` // emitted data
+  
 
     ### returns `undefined`
     ```javascript
-    const unaryHandler = function(call) {
-      call.send( { greeting: "Hello World." } )
-    }
+    const clientStreamHandler = function(call) {
+      call.on("data",(data)=>{
+        console.log(data);
+    });
     ```
-
-
-
-
