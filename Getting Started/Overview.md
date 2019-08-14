@@ -1,6 +1,6 @@
 # Overview
 
-For those familiar with gRPC and looking to dive into code, it may make more sense to skip straght to the [Intro](firecomm.github.io/docs/gettingstarted/intro). This section seeks to provide a brief overview of the core concepts of Firecomm, which mirror the core concepts of gRPC.
+For those familiar with gRPC and looking to dive into code, it may make more sense to skip straight to the [Intro](firecomm.github.io/docs/gettingstarted/intro). This section seeks to provide a brief overview of the core concepts of Firecomm, which mirror the core concepts of gRPC.
 
 > Firecomm is a framework for gRPC which allows Node.js developers to quickly spin up powerful gRPC microservice communication architectures with a simplified API.
 

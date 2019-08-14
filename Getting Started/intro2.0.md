@@ -9,20 +9,17 @@ Let's begin by creating a file named `exampleAPI.proto` that will live inside a 
 
 ```protobuf
 // proto/exampleAPI.proto
-syntax = 'proto3';
+syntax = "proto3";
 
 package exampleAPI;
 
 service ChattyMath {
-  rpc BidiMath (stream Msg) returns (stream Res) {};
+  rpc BidiMath (stream Benchmark) returns (stream Benchmark) {};
 }
 
-message Msg {
-  double req = 1;
-}
-
-message Res {
-  double res = 1;
+message Benchmark {
+  double requests = 1;
+  double responses = 2;
 }
 ```
 
@@ -40,7 +37,7 @@ const PROTO_PATH = path.join( __dirname, './proto/exampleAPI.proto' );
 
 const CONFIG_OBJECT = {
   keepCase: true, // keeps everything camelCased
-  longs: Number, // compiles the enormous `double`s for our BidiMath Msg and Res into a JavaScript Number rather than a String
+  longs: Number, // compiles the potentially enormous `double`s for our BenchmarkMsg requests and responses into a JavaScript Number rather than a String
 }
 const package = build( PROTO_PATH, CONFIG_OBJECT );
 module.exports = package;
@@ -67,19 +64,25 @@ function BidiMathHandler(bidi) {
   bidi
     .on('metadata', (metadata) => {
       start = Number(process.hrtime.bigint());
+      bidi.set({thisSetsMetadata: 'responses incoming'})
       console.log(metadata.getMap());
     })
     .on('error', (err) => {
       console.exception(err)
     })
-    .on('data', (message) => {
-      bidi.send({res: message.req});
-      if (req % 10000 === 0) {
+    .on('data', (benchmark) => {
+      bidi.send(
+        {
+          requests: benchmark.requests, 
+          responses: benchmark.responses + 1
+        }
+      );
+      if (benchmark.requests % 10000 === 0) {
         end = Number(process.hrtime.bigint());
       console.log(
         'client address:', bidi.getPeer(),
-        '\nnumber of requests:', req,
-        '\navg millisecond speed per request:', ((end - start) /1000000) / req
+        '\nnumber of requests:', benchmark.requests,
+        '\navg millisecond speed per request:', ((end - start) /1000000) / benchmark.requests
       );
     }
   })
@@ -112,7 +115,7 @@ new Server()
 // /server/server.js
 const { Server } = require( 'firecomm' );
 const package = require( '../package.js' );
-const { BidiMathHandler } = require ( './heavyMathHandlers.js' );
+const { BidiMathHandler } = require ( './chattyMathHandlers.js' );
 
 new Server()
   .addService( package.ChattyMath,   {
@@ -120,7 +123,7 @@ new Server()
 })
   .bind('0.0.0.0: 3000')
 ```
-> Note: `Server`s can be passed an array of `socket`s to bind any number of `socket`s. For example:
+> Note: `Server`s can be passed an array of strings to bind any number of sockets. For example:
 > ```javascript
 > server.bind( [ 
 >   '0.0.0.0: 3000', 
@@ -144,69 +147,56 @@ new Server()
   .start();
 ```
 > Run your new firecomm/gRPC-Node server with: `node /server/server.js`. It may also be worthwhile to map this command to `npm start` in your `package.json`.
-## 9.  Create a `Stub` for the `FileTransfer` service:
-Now that the `Server` is fully fleshed out, let's move to the client side by creating a client with `Stub`s for each `rpc` method on `ArrayTransfer`. Let's create a `arrayTransfer.js` file which will live inside our `clients` folder.
+
+## 8.  Create a *Stub* for the `ChattyMath` service:
+Now that the *Server* is fully fleshed out, let's create a *Stub* with access to each *RPC method* in the  `ChattyMath` *Service*. We'll create a `chattyMath.js` file which will live inside our `clients` folder.
 ```javascript
-// /clients/arrayTransfer.js
+// /clients/chattyMath.js
 const { Stub } = require( 'firecomm' );
 const package = require( '../package.js' )
-const fileTransferStub = new Stub( 
-	package.FileTransfer, 
-	'localhost: 3000',
+const stub = new Stub( 
+	package.ChattyMath, 
+	'localhost: 3000', // also can be '0.0.0.0: 3000'
 );
 ```
-> In a real gRPC distributed system with firecomm/gRPC-Node clients, each client will most likely exist separately for each `service` defined in the shared `.proto` file. However, clients can actually have any number of `Stubs` running on them on either the same `socket` or multiple `sockets`. Additionally, duplicate clients running the same service(s) can be used to allow server level load-balancing.
-## 10.  Make `ClientToServer` and `ServerToClient` service requests from the `Stub`
+> Note: multiple different clients *can* share a long-lived TCP connection with a single socket on the server, but it is likely better to map individual sockets.
 
-```javascript
-// /clients/fileTransfer.js
-const { Stub } = require( 'firecomm' );
-const package = require( '../package.js' )
-const fileTransferStub = new Stub( 
-	package.FileTransfer, 
-	'localhost: 3000',
-);
-const clientStream = 
-  fileTransferStub.ClientToServer( MESSAGE );
-  // some logic to warrant a streaming response
-  clientStream.write( MESSAGE );
-const serverStream = 
-  fileTransferStub.ServerToClient( MESSAGE );
-  // listeners for stream from server
-  serverStream.on( 'data', response => 
-  someFunctionality(request));
-```
-> Run your new firecomm/gRPC-Node client with: `node /clients/fileTransfer.js`. It may also be worthwhile to map this command to a custom command like `npm run transfer` in your `package.json`.
-
-## 11.  Create a `Stub` for the `HeavyMath` service:
-Now that the `Server` and `FileTransfer` Stub are fully fleshed out, let's create another `Stub` with access to each `rpc` method on `HeavyMath`. We'll create a `heavyMath.js` file which will live inside our `clients` folder.
+## 9. Make requests from the `Stub` and see how many requests and responses a duplex can make!
 ```javascript
 // /clients/heavyMath.js
 const { Stub } = require( 'firecomm' );
 const package = require( '../package.js' )
-const heavyMathStub = new Stub( 
-	package.HeavyMath, 
-	'localhost: 2999',
+const stub = new Stub( 
+  package.ChattyMath, 
+  'localhost: 3000',
 );
-```
-> Note: two different clients *can* share a single socket on the server, in which case all concurrent requests and responses will be multiplexed. However, in a real gRPC distributed system, this is unlikely for two different services to share a socket.
 
-## 12. Make `UnaryMath` and `BidiMath` service requests from the `Stub`
-```javascript
-// /clients/heavyMath.js
-const { Stub } = require( 'firecomm' );
-const package = require( '../package.js' )
-const heavyMathStub = new Stub( 
-	package.HeavyMath, 
-	'localhost: 2999',
-);
-heavyMathStub.UnaryMath( MESSAGE );
-  // some logic to warrant a streaming response
-  clientStream.write( MESSAGE );
-const bidiStream = 
-  heavyMathStub.BidiMath( MESSAGE );
-  // listeners for stream from server
-  serverStream.on( 'data', response => 
-  someFunctionality(request));
+let start;
+let end;
+const bidi = stub.bidiMath({thisIsMetadata: 'let the races begin'})
+  .send({requests: 1, responses: 0})
+  .on( 'metadata', (metadata) => {
+    start = Number(process.hrtime.bigint());
+    console.log(metadata.getMap())
+  })
+  .on( 'error', (err) => console.error(err))
+  .on( 'data', (benchmark) => {
+    bidi.send(
+      {
+        requests: benchmark.requests + 1, 
+        responses: benchmark.responses
+      }
+    )
+    if (benchmark.responses % 10000 === 0) {
+      end = Number(process.hrtime.bigint());
+    console.log(
+      'server address:', bidi.getPeer(),
+      '\ntotal number of responses:', benchmark.responses,
+      '\navg millisecond speed per response:', ((end - start) /1000000) / benchmark.responses
+    )
+  }
+});
 ```
-> Run your new firecomm/gRPC-Node client with: `node /clients/heavyMath.js`. It may also be worthwhile to map this command to a custom command like `npm run math` in your `package.json`.
+> Run your new firecomm/gRPC-Node client with: `node /clients/chattyMath.js`. It may also be worthwhile to map this command to a custom command like `npm run math` in your `package.json`.
+
+Now enjoy the power of gRPCs! Feel free to construct multiple Stubs to any number of ports, bind any number of ports to the Server, experiment and enjoy!
