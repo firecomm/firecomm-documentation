@@ -5,7 +5,7 @@ npm i --save firecomm
 ```
 
 ## 1. Define a `.proto` file
-Let's begin by creating a file named `exampleAPI.proto` that will live inside a `proto` folder. The `ProtoBuf` we define in this file will define the name of the `package`, the names of the `service`s, the `rpc` methods, what the client `Stub` sends, what the `Server` returns, and the structured data that is part of each `message`.
+Let's begin by creating a file named `exampleAPI.proto` that will live inside a `proto` folder. This file will define the name of the *Package*, the names of the *Services*, the *RPC methods* and the structured data of each *Message* sent and received.
 
 ```protobuf
 // proto/exampleAPI.proto
@@ -13,41 +13,21 @@ syntax = 'proto3';
 
 package exampleAPI;
 
-service ArrayTransfer {
-  rpc ClientToServer (stream Array) returns (Confirmation) {};
-  rpc ServerToClient (Confirmation) returns (stream Array) {};
+service ChattyMath {
+  rpc BidiMath (stream ReqRes) returns (stream ReqRes) {};
 }
 
-service HeavyMath {
-  rpc UnaryMath (Math) returns (Math) {};
-  rpc BidiMath (stream Math) returns (stream Math) {};
-}
-
-message Confirmation {
-  bool status = 1;
-  string comments = 2;
-}
-
-message Array {
-  repeated Math = 1;
-}
-
-message Math {
-  double num = 1;
+message ReqRes {
+  double req = 1;
+  double res = 2;
 }
 ```
 
-> Each `rpc` Method clearly defines request/response, client `Stub` to `Server` regardless of call type. For example:
-> ```protobuf
-> //    MethodName    Stub/request         Server/response
-> rpc ClientToServer (stream File) returns (Confirmation) {};
-> ```
+> Each `rpc` Method clearly defines request/response, client `Stub` to `Server` return.
 
 ## 2. Let's `build()` a `package`
 
-Now that we've defined our API in a ProtoBuf, let's pass an absolute path to our `.proto` file to build a `package`. We will create a `package.js` file which will live in our root folder and `export` a configured `package` containing the transpiled `service`s and `rpc` methods.
-
-We will also define our configuration for how our packaged methods will handle different data types.
+Now that we've defined our API, let's pass an absolute path to our `.proto` file to build our *Package*. We will create a `package.js` file which will live in our root folder and `export` an Object containing the compiled *Services* and *RPC methods*.
 
 ```javascript
 // package.js
@@ -57,71 +37,49 @@ const PROTO_PATH = path.join( __dirname, './proto/exampleAPI.proto' );
 
 const CONFIG_OBJECT = {
   keepCase: true, // keeps everything camelCased
-  longs: Number, // transpiles the enormous `double`s for our HeavyMath into a javascript Number rather than a String
-  bytes: String, // helps us manage the FileTransfer bytes as javascript `String`s rather than pure hexadecimal Buffers or uint8Arrays
+  longs: Number, // compiles the enormous `double`s for our ChattyMath into a JavaScript Number rather than a String
 }
 const package = build( PROTO_PATH, CONFIG_OBJECT );
 module.exports = package;
 ```
 
-> Advanced Note: whether you're building a firecomm/gRPC-Node `Server`, a firecomm/gRPC-Node client with `Stub`s, or a firecomm/gRPC-Node hybrid client/server, it is important to build a package with configurations that match the API for your distributed system. Every server and client should have the same `.proto` file regardless of language.
-
 ## 3. Create a server
-Next, we will create a `new Server()` inside a `server.js` file which will live in a `server` folder. 
+Next, let's construct a *Server*. 
 
 ```javascript
 // /server/server.js
 const { Server } = require( 'firecomm' );
 const server = new Server();
 ```
-## 4. Define the server-side handlers for our `ArrayTransfer` service.
 
-Let's define handler functions for our two `ArrayTransfer` `rpc` methods. Method handler functions will contain the server-side logic for our `service`s. Let's create a `arrayTransferHandlers.js` file which will live inside our `server` folder.
+## 4. Define the server-side handlers for our `ChattyMath` service.
+
+Let's define handler functions for our `BidiMath` methods.
 
 ```javascript
-// /server/arrayTransferHandlers.js
-ClientToServerHandler( onClientStream ) {
-  let resArray = [];
-  onClientStream.on('data', (array) => {
-    resArray = resArray.concat(array);
+// /server/chattyMathHandlers.js
+function BidiMathHandler(bidi) {
+  let start;
+  let end;
+  bidi.on('data', ({req, res}) => {
+    if (req === 1) {
+      start = Number(process.hrtime.bigint());
+      console.log(
+        'first request received from client stub',
+      )
+    }
+    bidi.write({req: req, res: res + 1});
+    if (req % 10000 === 0) {
+      end = Number(process.hrtime.bigint());
+    console.log(
+      'number of requests:', req,
+      '\navg millisecond speed per request:', ((end - start) /1000000) / req
+      );
+    }
   })
-  onClientStream.on('end', () => {
-    onClientStream.send({ 
-      status: true,
-      comments: 'response from server: the client stream is complete',
-      array : resArray,
-    });
-  })
-};
-ServerToClientHandler( onClientCall ) {
-  let count = 0;
-  setInterval(() => {
-    count += 1;
-    onClientCall.write({array: [count, count / 2]})
-  }, 1);
-  
-};
-module.exports = { 
-	ClientToServerHandler,
-	ServerToClientHandler,
 }
-```
 
-## 5. Define the server-side handlers for our `HeavyMath` service.
-
-Let's define handler functions for our two HeavyMath methods. Let's continue by defining the handlers for our `HeavyMath` service in a `heavyMathHandlers.js` file which will live inside our `server` folder.
-
-```javascript
-// /server/heavyMathHandlers.js
-UnaryMathHandler( CALL ) {
-  CALL.send({ response: value });
-};
-BidiMathHandler( CALL ) {
-  CALL.on('data', request => someFunctionality(request));
-  CALL.send({ response: value });
-};
 module.exports = { 
-	UnaryMathHandler,
 	BidiMathHandler,
 }
 ```
