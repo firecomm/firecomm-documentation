@@ -9,16 +9,16 @@ Class for storing metadata. Keys are normalized to lowercase ASCII.
 #### Parameters:
 | Name | Type | Argument | Description |
 | --- | --- | --- | --- |
-| `options` | Object | <optional>\ | Boolean options for the beginning of the call. These options only have any effect when passed at the beginning of a client request.|
+| `options` | Object | optional | Boolean options for the beginning of the call. These options only have any effect when passed at the beginning of a client request.|
 
 ##### Properties
 
 | Name | Type | Argument | Default | Description |
 | --- | --- | --- | --- | --- |
-| `idempotentRequest` | boolean | <optional>\ | false | Signal that the request is idempotent
-| `waitForReady` | boolean | <optional>\ | true | Signal that the call should not return UNAVAILABLE before it has started.
-| `cacheableRequest` | boolean | <optional>\ | false | Signal that the call is cacheable. GRPC is free to use GET verb.
-| `corked` | boolean | <optional>\ | false | Signal that the initial metadata should be corked.
+| `idempotentRequest` | boolean | optional | false | Signal that the request is idempotent
+| `waitForReady` | boolean | optional | true | Signal that the call should not return UNAVAILABLE before it has started.
+| `cacheableRequest` | boolean | optional | false | Signal that the call is cacheable. GRPC is free to use GET verb.
+| `corked` | boolean | optional | false | Signal that the initial metadata should be corked.
 
 ##### Example
 ```
@@ -122,9 +122,7 @@ Set options on the metadata object
 
 | Name | Type | Argument | Default | Description |
 | --- | --- | --- | --- | --- |
-| `idempotentRequest` | boolean | <optional>\ |false | Signal that the request is idempotent
-| `waitForReady` | boolean | <optional>\ | true | Signal that the call should not return UNAVAILABLE before it has started.
-| `cacheableRequest` | boolean | <optional>\ |false |Signal that the call is cacheable. GRPC is free to use GET verb.
-| `corked` | boolean | <optional>\ | false | Signal that the initial metadata should be corked.
-
- |
+| `idempotentRequest` | boolean | optional |false | Signal that the request is idempotent
+| `waitForReady` | boolean | optional | true | Signal that the call should not return UNAVAILABLE before it has started.
+| `cacheableRequest` | boolean | optional |false |Signal that the call is cacheable. GRPC is free to use GET verb.
+| `corked` | boolean | optional | false | Signal that the initial metadata should be corked.
