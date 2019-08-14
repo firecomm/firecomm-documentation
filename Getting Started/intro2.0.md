@@ -14,20 +14,23 @@ syntax = 'proto3';
 package exampleAPI;
 
 service ChattyMath {
-  rpc BidiMath (stream ReqRes) returns (stream ReqRes) {};
+  rpc BidiMath (stream Msg) returns (stream Res) {};
 }
 
-message ReqRes {
+message Msg {
   double req = 1;
-  double res = 2;
+}
+
+message Res {
+  double res = 1;
 }
 ```
 
-> Each `rpc` Method clearly defines request/response, client `Stub` to `Server` return.
+> Each *RPC Method* clearly defines the Message object to be sent and received. The Object we send will have the exact properties `peerSocket` with a string value and `req` or `res` with a value of `double`, which can be a Number or a String in JavaScript based on the build configuration.
 
 ## 2. Let's `build()` a `package`
 
-Now that we've defined our API, let's pass an absolute path to our `.proto` file to build our *Package*. We will create a `package.js` file which will live in our root folder and `export` an Object containing the compiled *Services* and *RPC methods*.
+Let's pass an absolute path to our `.proto` file to build our *Package*. We will create a `package.js` file which will live in our root folder and `export` an Object containing the compiled *Service* and *RPC method*.
 
 ```javascript
 // package.js
@@ -37,14 +40,14 @@ const PROTO_PATH = path.join( __dirname, './proto/exampleAPI.proto' );
 
 const CONFIG_OBJECT = {
   keepCase: true, // keeps everything camelCased
-  longs: Number, // compiles the enormous `double`s for our ChattyMath into a JavaScript Number rather than a String
+  longs: Number, // compiles the enormous `double`s for our BidiMath Msg and Res into a JavaScript Number rather than a String
 }
 const package = build( PROTO_PATH, CONFIG_OBJECT );
 module.exports = package;
 ```
 
 ## 3. Create a server
-Next, let's construct a *Server*. 
+Next, let's construct a *Server* in a new `server` folder and file. 
 
 ```javascript
 // /server/server.js
@@ -52,28 +55,31 @@ const { Server } = require( 'firecomm' );
 const server = new Server();
 ```
 
-## 4. Define the server-side handlers for our `ChattyMath` service.
+## 4. Define the server-side handlers for our `ChattyMath` *Service*.
 
-Let's define handler functions for our `BidiMath` methods.
+Let's define handler functions for our `BidiMath` *RPC method*. Server-Side handlers are how we will interact with the Client-side requests.
 
 ```javascript
 // /server/chattyMathHandlers.js
 function BidiMathHandler(bidi) {
   let start;
   let end;
-  bidi.on('data', ({req, res}) => {
-    if (req === 1) {
+  bidi
+    .on('metadata', (metadata) => {
       start = Number(process.hrtime.bigint());
+      console.log(metadata.getMap());
+    })
+    .on('error', (err) => {
+      console.exception(err)
+    })
+    .on('data', (message) => {
+      bidi.send({res: message.req});
+      if (req % 10000 === 0) {
+        end = Number(process.hrtime.bigint());
       console.log(
-        'first request received from client stub',
-      )
-    }
-    bidi.write({req: req, res: res + 1});
-    if (req % 10000 === 0) {
-      end = Number(process.hrtime.bigint());
-    console.log(
-      'number of requests:', req,
-      '\navg millisecond speed per request:', ((end - start) /1000000) / req
+        'client address:', bidi.getPeer(),
+        '\nnumber of requests:', req,
+        '\navg millisecond speed per request:', ((end - start) /1000000) / req
       );
     }
   })
@@ -84,90 +90,58 @@ module.exports = {
 }
 ```
 
-## 6. Add each `service` from the package to the `Server`
+## 5. Add each *Service* from the package to the `Server`
 
-Let's now return to the `server.js` file and map each `service` onto our `Server`. Mirroring the structure of the `.proto` file we transpiled, the `package` object we built has both of the `service`s on it as properties. We use the `Server` method `.addService` to add the `services` one at a time and map each of the `rpc` methods to the handlers we wrote.  
+Let's go back to the `server.js` file and map each *Service* onto our `Server`. Mirroring the structure of the `.proto` file, the *Package* Object we built has each *Service* on it as properties. We use the `Server.addService` method to add each `Service` one at a time and map each *RPC method* to the handler we want to use.  
 
 ```javascript
 // /server/server.js
 const { Server } = require( 'firecomm' );
 const package = require( '../package.js' );
-const { ClientToServerHandler,
-	ServerToClientHandler } = require ( './fileTransferHandlers.js );
-const { UnaryMathHandler,
-	BidiMathHandler } = require ( './heavyMathHandlers.js );
+const { BidiMathHandler } = require ( './chattyMathHandlers.js );
 
-const server = new Server();
-server.addService( package.FileTransfer,   { 
-  ClientToServer: ClientToServerHandler,
-  ServerToClient: ServerToClientHandler,
- });
- server.addService( package.HeavyMath,   { 
-  UnaryMath: UnaryMathHandler,
+new Server()
+  .addService( package.ChattyMath,   {
   BidiMath: BidiMathHandler,
- });
+})
 ```
-> Note: The `Server.addService()` method also allows the mapping of middleware functions or a middleware stack of functions in the form of an `array` to be passed in order to influence `rpc` methods before the handler which should come last in the array. For example: 
-> ```javascript
-> server.addService( package.HeavyMath,   > { 
->   UnaryMath: [ UnaryMathMiddleware, UnaryMathHandler ],
->   BidiMath: ServerToClientHandler,
-> }, [ serviceLevelMiddleware1, serviceLevelMiddleware2 ]);
-> ```
 
-## 7. Bind the server to `socket`(s)
+## 6. Bind the server to sockets
 
 ```javascript
 // /server/server.js
 const { Server } = require( 'firecomm' );
 const package = require( '../package.js' );
-const { ClientToServerHandler,
-	ServerToClientHandler } = require ( './fileTransferHandlers.js' );
-const { UnaryMathHandler,
-	BidiMathHandler } = require ( './heavyMathHandlers.js' );
+const { BidiMathHandler } = require ( './heavyMathHandlers.js' );
 
-const server = new Server();
-server.addService( package.FileTransfer,   { 
-  ClientToServer: ClientToServerHandler,
-  ServerToClient: ServerToClientHandler,
- });
- server.addService( package.HeavyMath,   { 
-  UnaryMath: UnaryMathHandler,
+new Server()
+  .addService( package.ChattyMath,   {
   BidiMath: BidiMathHandler,
- });
-server.bind('0.0.0.0: 3000');
+})
+  .bind('0.0.0.0: 3000')
 ```
 > Note: `Server`s can be passed an array of `socket`s to bind any number of `socket`s. For example:
 > ```javascript
 > server.bind( [ 
 >   '0.0.0.0: 3000', 
->   '0.0.0.0: 2999', 
+>   '0.0.0.0: 8080', 
+>   '0.0.0.0: 9900',
 > ] );
 > ```
-## 8. Start the server
+## 7. Start the server
 ```javascript
 // /server/server.js
 const { Server } = require( 'firecomm' );
 const package = require( '../package.js' );
-const { ClientToServerHandler,
-	ServerToClientHandler } = require ( './fileTransferHandlers.js );
-const { UnaryMathHandler,
-	BidiMathHandler } = require ( './heavyMathHandlers.js );
+const { BidiMathHandler } = require ( './heavyMathHandlers.js' );
 
-const server = new Server();
-server.addService( package.FileTransfer,   { 
-  ClientToServer: ClientToServerHandler,
-  ServerToClient: ServerToClientHandler,
- });
- server.addService( package.HeavyMath,   { 
-  UnaryMath: UnaryMathHandler,
-  BidiMath: BidiMathHandler,
- });
-server.bind( [ 
-  '0.0.0.0: 3000', 
-  '0.0.0.0: 2999', 
-] );
-server.start();
+new Server()
+  .addService( 
+    package.ChattyMath,   
+    { BidiMath: BidiMathHandler }
+  )
+  .bind('0.0.0.0: 3000')
+  .start();
 ```
 > Run your new firecomm/gRPC-Node server with: `node /server/server.js`. It may also be worthwhile to map this command to `npm start` in your `package.json`.
 ## 9.  Create a `Stub` for the `FileTransfer` service:
